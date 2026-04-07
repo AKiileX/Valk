@@ -34,13 +34,13 @@ class EndpointDiscovery(BaseModule):
 
             try:
                 if method == "GET":
-                    resp = await self.session.get(path)
+                    resp = await self.session.get(path, timeout=8.0)
                 else:
                     # Send a minimal payload — chat endpoint needs messages + model
                     probe_body = chat_probe.get("body", {"messages": [{"role": "user", "content": "hi"}]})
                     if self.session.default_model:
                         probe_body = {**probe_body, "model": self.session.default_model}
-                    resp = await self.session.post(path, json=probe_body)
+                    resp = await self.session.post(path, json=probe_body, timeout=8.0)
 
                 status = resp.status_code
 

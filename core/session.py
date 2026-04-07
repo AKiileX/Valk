@@ -67,16 +67,21 @@ class Session:
         self,
         method: str,
         path: str,
+        timeout: float | None = None,
         **kwargs: Any,
     ) -> httpx.Response:
         """Send a raw HTTP request with throttling and retry."""
         await self._throttle()
 
+        effective_timeout = httpx.Timeout(timeout) if timeout is not None else None
+
         last_error: Exception | None = None
         for attempt in range(self.config.max_retries):
             try:
                 t0 = time.monotonic()
-                resp = await self._client.request(method, path, **kwargs)
+                resp = await self._client.request(
+                    method, path, timeout=effective_timeout, **kwargs
+                )
                 self._total_elapsed += time.monotonic() - t0
                 self._request_count += 1
                 return resp
@@ -88,11 +93,11 @@ class Session:
             f"Request to {path!r} failed — max_retries={self.config.max_retries} with no error captured"
         )
 
-    async def get(self, path: str, **kwargs: Any) -> httpx.Response:
-        return await self.request("GET", path, **kwargs)
+    async def get(self, path: str, timeout: float | None = None, **kwargs: Any) -> httpx.Response:
+        return await self.request("GET", path, timeout=timeout, **kwargs)
 
-    async def post(self, path: str, **kwargs: Any) -> httpx.Response:
-        return await self.request("POST", path, **kwargs)
+    async def post(self, path: str, timeout: float | None = None, **kwargs: Any) -> httpx.Response:
+        return await self.request("POST", path, timeout=timeout, **kwargs)
 
     # ── Chat completions (high-level) ────────────────────────────────────
 
