@@ -98,10 +98,10 @@ python valk.py scan http://localhost:11434 --regression
 | `sti-function-hijack` | LLM07 | Inject `<tool_call>` to trigger attacker-controlled function calls |
 | `sti-role-escalation` | LLM01 | Multi-turn STI privilege escalation |
 | `jailbreak` | LLM01 | Leveled jailbreaks L1/L2/L3 with baseline-validated detection |
-| `guardrail-bypass` | LLM01 | Base64, ROT13, hex, unicode, 12-language encoding bypass |
+| `guardrail-bypass` | LLM01 | Base64, ROT13, hex, zero-width space, homoglyphs, RTL override, leetspeak, emoji semantic bypass, 12-language encoding, chained credential exfil |
 | `multi-turn-escalation` | LLM01 | Progressive 8-chain multi-turn escalation |
-| `indirect-injection` | LLM01 | Simulated RAG/email/tool-output injection |
-| `data-exfil` | LLM06 | Markdown image injection + Interactsh OOB verification |
+| `indirect-injection` | LLM01 | RAG/email/tool-output injection — includes .env and AWS credential planting chains |
+| `data-exfil` | LLM06 | Markdown/HTML/JSON callback exfil, credential-specific URL embedding, Interactsh OOB verification |
 | `output-injection` | LLM02 | XSS, SSTI, SQL, command injection in model output |
 | `rag-poisoning` | LLM03 | RAG document poisoning (7 scenarios) |
 | `token-limit-dos` | LLM04 | Token exhaustion DoS (opt-in only) |

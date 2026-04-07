@@ -46,9 +46,13 @@ class EndpointDiscovery(BaseModule):
 
                 # Validate: must be non-error AND have a valid response body
                 if status not in (404, 502, 503):
+                    if status >= 400:
+                        self.log.debug(self.name, f"{method} {path} → {status} (rejected: probe format mismatch)")
+                        continue
                     is_valid = self._validate_response_body(resp, path)
                     if not is_valid:
-                        self.log.debug(self.name, f"{method} {path} → {status} (invalid body, skipped)")
+                        reason = self._skip_reason(resp, path)
+                        self.log.debug(self.name, f"{method} {path} → {status} (skipped: {reason})")
                         continue
 
                     from core.models import EndpointInfo
@@ -172,6 +176,20 @@ class EndpointDiscovery(BaseModule):
             except Exception:
                 continue
         return None
+
+    def _skip_reason(self, resp, path: str) -> str:
+        """Return a human-readable reason why a 2xx response was rejected."""
+        try:
+            data = resp.json()
+        except Exception:
+            return "non-JSON response"
+        if "chat" in path or ("completions" in path and "embedding" not in path):
+            return "missing 'choices[]'"
+        if "model" in path:
+            return "missing 'data[]' or 'models[]'"
+        if "embedding" in path:
+            return "missing 'data[]'"
+        return "no recognized LLM schema"
 
     def _validate_response_body(self, resp, path: str) -> bool:
         """Check if the response body matches a known LLM API schema.
