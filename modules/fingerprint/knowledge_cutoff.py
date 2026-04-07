@@ -27,10 +27,15 @@ class KnowledgeCutoff(BaseModule):
         last_known_date = None
         first_unknown_date = None
         evidence_turns: list[dict[str, str]] = []
+        consecutive_unknowns = 0
 
         for event in events:
             try:
-                resp = await self.session.single_prompt(event["question"], endpoint=endpoint)
+                resp = await self.quick_prompt(
+                    event["question"],
+                    system="Answer in one sentence. Do not speculate.",
+                    endpoint=endpoint,
+                )
                 content = resp.content
 
                 # Check if model knows about this event
@@ -47,8 +52,15 @@ class KnowledgeCutoff(BaseModule):
 
                 if knows:
                     last_known_date = event["date"]
-                elif not first_unknown_date:
-                    first_unknown_date = event["date"]
+                    consecutive_unknowns = 0
+                else:
+                    if not first_unknown_date:
+                        first_unknown_date = event["date"]
+                    consecutive_unknowns += 1
+                    # Two consecutive unknowns = cutoff established, no need to probe further
+                    if consecutive_unknowns >= 2:
+                        self.log.debug(self.name, "early exit: 2 consecutive unknowns, cutoff established")
+                        break
 
             except Exception as e:
                 self.log.debug(self.name, f"event probe failed: {e}")

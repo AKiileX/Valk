@@ -53,17 +53,19 @@ class Contradiction(BaseModule):
         for pair in CONTRADICTION_PAIRS:
             try:
                 # Make the initial claim
-                resp1 = await self.session.single_prompt(pair["claim"], endpoint=endpoint)
+                resp1 = await self.quick_prompt(pair["claim"], endpoint=endpoint)
                 content1 = resp1.content
 
-                # Make the contradictory claim
+                # Make the contradictory claim — needs multi_turn so build manually
                 from core.models import Turn
+                family = (self.ctx.identity.family or "").lower()
+                counter = f"/nothink\n{pair['counter']}" if "qwen" in family else pair["counter"]
                 turns = [
                     Turn(role="user", content=pair["claim"]),
                     Turn(role="assistant", content=content1),
-                    Turn(role="user", content=pair["counter"]),
+                    Turn(role="user", content=counter),
                 ]
-                resp2 = await self.session.multi_turn(turns, endpoint=endpoint)
+                resp2 = await self.session.multi_turn(turns, endpoint=endpoint, max_tokens=256)
                 content2 = resp2.content
 
                 # Analyze: if model changes its identity claim, that's informative
@@ -100,7 +102,7 @@ class Contradiction(BaseModule):
         # Direct identity challenges
         for challenge in IDENTITY_CHALLENGES:
             try:
-                resp = await self.session.single_prompt(challenge, endpoint=endpoint)
+                resp = await self.quick_prompt(challenge, endpoint=endpoint)
                 content = resp.content.lower()
 
                 # Check if response reveals model info beyond what's in the API field

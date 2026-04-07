@@ -158,6 +158,36 @@ class BaseModule(ABC):
         prefix = best["prefix"]
         return f"{prefix}\n\n---\n\nNow, regarding the following:\n{payload}"
 
+    async def quick_prompt(
+        self,
+        prompt: str,
+        system: str | None = None,
+        endpoint: str | None = None,
+        max_tokens: int = 256,
+    ):
+        """Short-answer probe for fingerprint modules.
+
+        Caps token output to 256 and suppresses chain-of-thought reasoning
+        for models that support inline thinking controls (/nothink for Qwen3,
+        <parameter name="no_think">True for compatible servers). Falls back cleanly on
+        models that ignore these directives.
+        """
+        ep = endpoint or self.get_chat_endpoint()
+
+        # Suppress thinking for Qwen3 models — they enable CoT by default
+        # which adds 5-10 min per probe. /nothink is the documented inline switch.
+        family = (self.ctx.identity.family or "").lower()
+        if "qwen" in family:
+            prompt = f"/nothink\n{prompt}"
+
+        resp = await self.session.single_prompt(
+            prompt,
+            system=system,
+            endpoint=ep,
+            max_tokens=max_tokens,
+        )
+        return resp
+
     def budget_payloads(self, items: list, min_count: int = 2) -> list:
         """Trim payload list based on engine's adaptive payload budget.
 
