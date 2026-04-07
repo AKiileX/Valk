@@ -216,6 +216,8 @@ class ScanEngine:
         self.log.console.print(f"[bold]target:[/bold] {self.config.target_url}")
         self.log.console.print(f"[bold]scan_id:[/bold] {self.ctx.scan_id}")
         self.log.console.print(f"[bold]speed:[/bold]   {self.config.speed}")
+        if self.config.provider != "openai":
+            self.log.console.print(f"[bold]provider:[/bold] {self.config.provider}")
 
         if self.config.model_hint:
             self.ctx.identity.family = self.config.model_hint

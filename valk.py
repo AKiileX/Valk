@@ -49,10 +49,26 @@ def scan(
     regression: bool = typer.Option(False, "--regression", help="Run regression mode (deterministic payloads + diff report)"),
     verbose: bool = typer.Option(False, "--verbose", "-v", help="Verbose output"),
     dry_run: bool = typer.Option(False, "--dry-run", help="Show planned modules without executing"),
+    provider: Optional[str] = typer.Option(None, "--provider", help="API provider: openai (default), anthropic, gemini (auto-detected from URL if omitted)"),
 ) -> None:
     """Run an LLM red team assessment against a target."""
     # Resolve API key: CLI flag takes priority, then environment variable
     effective_api_key = api_key or os.environ.get("VALK_API_KEY")
+
+    # Resolve provider: explicit flag > auto-detect from URL
+    from core.providers import detect_provider, SUPPORTED_PROVIDERS, _BROWSER_SETUP_HINT
+    if provider:
+        effective_provider = provider.lower()
+        if effective_provider not in SUPPORTED_PROVIDERS:
+            console.print(f"[bold red]Error:[/bold red] Unknown provider '{effective_provider}'. "
+                          f"Supported: {', '.join(SUPPORTED_PROVIDERS)}")
+            raise typer.Exit(1)
+    else:
+        effective_provider, is_browser = detect_provider(target)
+        if is_browser:
+            console.print(f"\n[bold yellow]Browser-only target detected:[/bold yellow] {target}\n")
+            console.print(_BROWSER_SETUP_HINT)
+            raise typer.Exit(1)
 
     config = ScanConfig(
         target_url=target.rstrip("/"),
@@ -74,6 +90,7 @@ def scan(
         min_confidence=min_confidence,
         interactsh_url=interactsh,
         payload_packs=list(payload_pack) if payload_pack else [],
+        provider=effective_provider,
     )
 
     log = ValkLogger(verbose=verbose)

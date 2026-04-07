@@ -176,3 +176,4 @@ class ScanConfig(BaseModel):
     min_confidence: str | None = None        # "verified", "probable", "indicative" — filter findings in report
     interactsh_url: str | None = None        # Interactsh server for OOB callback verification
     payload_packs: list[str] = Field(default_factory=list)  # External payload pack directories
+    provider: str = "openai"                 # API provider: openai, anthropic, gemini

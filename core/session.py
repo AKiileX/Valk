@@ -23,8 +23,14 @@ class Session:
         self._last_request_time = 0.0
         self._lock = asyncio.Lock()
 
+        # Load provider adapter (non-OpenAI providers handle auth per-request)
+        from core.providers import get_adapter
+        self._provider_adapter = get_adapter(config.provider) if config.provider != "openai" else None
+
         headers = {"Content-Type": "application/json"}
-        if config.api_key:
+        # Only set Authorization header for OpenAI-compat providers.
+        # Anthropic uses x-api-key; Gemini uses ?key= query param — both injected per-request.
+        if config.api_key and config.provider == "openai":
             header_name = config.auth_header or "Authorization"
             value = config.api_key if config.api_key.startswith("Bearer ") else f"Bearer {config.api_key}"
             headers[header_name] = value
@@ -112,6 +118,30 @@ class Session:
     ) -> ChatResponse:
         """Send a chat completion request and return parsed response."""
         effective_max_tokens = max_tokens if max_tokens is not None else self.config.max_tokens
+
+        # Non-OpenAI provider: delegate formatting and response parsing to adapter
+        if self._provider_adapter is not None:
+            eff_endpoint, payload, extra_headers = self._provider_adapter.format_request(
+                messages=messages,
+                model=model or self.default_model,
+                temperature=temperature,
+                max_tokens=effective_max_tokens,
+                api_key=self.config.api_key,
+                **extra,
+            )
+            resp = await self.post(eff_endpoint, json=payload, headers=extra_headers)
+            json_body = resp.json() if resp.status_code == 200 else {}
+            normalized = self._provider_adapter.parse_response(
+                resp.status_code, resp.text, json_body, dict(resp.headers)
+            )
+            return ChatResponse(
+                status_code=resp.status_code,
+                raw=resp.text,
+                json_body=normalized,
+                headers=dict(resp.headers),
+            )
+
+        # OpenAI-compatible (default path)
         payload: dict[str, Any] = {
             "messages": messages,
             "temperature": temperature,
