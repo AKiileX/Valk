@@ -163,28 +163,33 @@ class BaseModule(ABC):
         prompt: str,
         system: str | None = None,
         endpoint: str | None = None,
-        max_tokens: int = 256,
+        max_tokens: int = 512,
     ):
         """Short-answer probe for fingerprint modules.
 
-        Caps token output to 256 and suppresses chain-of-thought reasoning
-        for models that support inline thinking controls (/nothink for Qwen3,
-        <parameter name="no_think">True for compatible servers). Falls back cleanly on
-        models that ignore these directives.
+        Suppresses chain-of-thought reasoning via two complementary mechanisms:
+        1. ``enable_thinking=False`` in the request body — supported by LM Studio,
+           vLLM, and any server exposing Qwen3's native thinking toggle.
+        2. ``/nothink`` inline prefix — Qwen3's documented soft disable for servers
+           that don't parse the API field.
+        Both are applied together; non-Qwen models silently ignore both.
+        Token floor raised to 512 so answers clear the reasoning preamble even
+        when thinking suppression is incomplete.
         """
         ep = endpoint or self.get_chat_endpoint()
 
-        # Suppress thinking for Qwen3 models — they enable CoT by default
-        # which adds 5-10 min per probe. /nothink is the documented inline switch.
         family = (self.ctx.identity.family or "").lower()
+        extra: dict = {}
         if "qwen" in family:
             prompt = f"/nothink\n{prompt}"
+            extra["enable_thinking"] = False
 
         resp = await self.session.single_prompt(
             prompt,
             system=system,
             endpoint=ep,
             max_tokens=max_tokens,
+            **extra,
         )
         return resp
 

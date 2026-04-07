@@ -196,9 +196,22 @@ class ChatResponse:
 
     @property
     def content(self) -> str:
-        """Extract the assistant message text."""
+        """Extract the assistant message text.
+
+        If the model ran out of tokens mid-think (finish_reason=length, content
+        empty, reasoning_content non-empty), return the reasoning snippet so
+        callers get something meaningful instead of a silent empty string.
+        """
         try:
-            return self.json["choices"][0]["message"]["content"]
+            msg = self.json["choices"][0]["message"]
+            text = msg.get("content") or ""
+            if not text.strip():
+                # Truncated during thinking phase — surface reasoning as fallback
+                reasoning = msg.get("reasoning_content") or ""
+                finish = self.json["choices"][0].get("finish_reason", "")
+                if reasoning and finish == "length":
+                    return f"[thinking truncated] {reasoning[:500]}"
+            return text
         except (KeyError, IndexError):
             return ""
 
