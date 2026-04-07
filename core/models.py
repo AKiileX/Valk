@@ -177,3 +177,4 @@ class ScanConfig(BaseModel):
     interactsh_url: str | None = None        # Interactsh server for OOB callback verification
     payload_packs: list[str] = Field(default_factory=list)  # External payload pack directories
     provider: str = "openai"                 # API provider: openai, anthropic, gemini
+    attack_max_tokens: int | None = None     # Token cap for attack phase probes (None = auto)

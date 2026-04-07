@@ -50,6 +50,7 @@ def scan(
     verbose: bool = typer.Option(False, "--verbose", "-v", help="Verbose output"),
     dry_run: bool = typer.Option(False, "--dry-run", help="Show planned modules without executing"),
     provider: Optional[str] = typer.Option(None, "--provider", help="API provider: openai (default), anthropic, gemini (auto-detected from URL if omitted)"),
+    attack_max_tokens: Optional[int] = typer.Option(None, "--attack-max-tokens", help="Token cap per attack probe (default: 1024 for thinking models, unlimited otherwise)"),
 ) -> None:
     """Run an LLM red team assessment against a target."""
     # Resolve API key: CLI flag takes priority, then environment variable
@@ -91,6 +92,7 @@ def scan(
         interactsh_url=interactsh,
         payload_packs=list(payload_pack) if payload_pack else [],
         provider=effective_provider,
+        attack_max_tokens=attack_max_tokens,
     )
 
     log = ValkLogger(verbose=verbose)

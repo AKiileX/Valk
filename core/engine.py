@@ -256,6 +256,13 @@ class ScanEngine:
                         )
                         break
 
+                # Apply attack-phase token cap on session
+                if phase == Phase.ATTACK:
+                    cap = self._resolve_attack_max_tokens()
+                    session.attack_max_tokens = cap
+                    if cap is not None:
+                        self.log.info("engine", f"attack token cap: {cap} tokens/probe (thinking suppression active)")
+
                 self.log.phase_start(phase)
                 await self._run_phase(phase, session)
                 self.log.phase_end(phase)
@@ -343,6 +350,22 @@ class ScanEngine:
 
                 self.log.error(error_msg, module=mod_name)
                 self.ctx.errors.append(error_msg)
+
+    def _resolve_attack_max_tokens(self) -> int | None:
+        """Return the token cap to apply for all attack-phase probes.
+
+        Priority:
+        1. Explicit --attack-max-tokens CLI flag
+        2. Auto: thinking model hint → 1024 (suppresses runaway reasoning)
+        3. None → no cap (use global --max-tokens)
+        """
+        if self.config.attack_max_tokens is not None:
+            return self.config.attack_max_tokens
+        _THINKING_FAMILIES = {"qwen", "qwq", "deepseek", "deepseek-r1"}
+        hint = (self.config.model_hint or "").lower()
+        if hint in _THINKING_FAMILIES:
+            return 1024
+        return None
 
     async def _check_model_ready(self, session: Session) -> tuple[bool, str]:
         """Send a minimal ping to verify a model is loaded and generating responses.

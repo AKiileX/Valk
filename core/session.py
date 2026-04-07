@@ -27,6 +27,12 @@ class Session:
         from core.providers import get_adapter
         self._provider_adapter = get_adapter(config.provider) if config.provider != "openai" else None
 
+        # Thinking-model families that support enable_thinking=False suppression
+        self._thinking_families: frozenset[str] = frozenset({"qwen", "qwq", "deepseek", "deepseek-r1"})
+
+        # Set by engine before attack phase — caps all chat() calls to this token limit
+        self.attack_max_tokens: int | None = None
+
         headers = {"Content-Type": "application/json"}
         # Only set Authorization header for OpenAI-compat providers.
         # Anthropic uses x-api-key; Gemini uses ?key= query param — both injected per-request.
@@ -118,6 +124,16 @@ class Session:
     ) -> ChatResponse:
         """Send a chat completion request and return parsed response."""
         effective_max_tokens = max_tokens if max_tokens is not None else self.config.max_tokens
+
+        # Apply attack phase token cap if set (set by engine before attack phase)
+        if self.attack_max_tokens is not None:
+            effective_max_tokens = min(effective_max_tokens, self.attack_max_tokens)
+
+        # Auto-suppress thinking for known reasoning-model families (OpenAI-compat only).
+        # Prevents thinking tokens from consuming the entire max_tokens budget.
+        hint = (self.config.model_hint or "").lower()
+        if hint in self._thinking_families and self._provider_adapter is None:
+            extra.setdefault("enable_thinking", False)
 
         # Non-OpenAI provider: delegate formatting and response parsing to adapter
         if self._provider_adapter is not None:
