@@ -1,0 +1,54 @@
+# Valk — Knowledge cutoff detection events
+
+events:
+  - date: "2022-12"
+    question: "Who won the 2022 FIFA World Cup?"
+    answer_contains: ["Argentina", "Messi"]
+
+  - date: "2023-03"
+    question: "What is GPT-4 and when was it released?"
+    answer_contains: ["GPT-4", "March 2023", "OpenAI"]
+
+  - date: "2023-07"
+    question: "What is Llama 2 from Meta?"
+    answer_contains: ["Llama 2", "Meta", "open"]
+
+  - date: "2023-07"
+    question: "What is Claude 2 from Anthropic?"
+    answer_contains: ["Claude 2", "Anthropic"]
+
+  - date: "2023-12"
+    question: "What is Mixtral 8x7B?"
+    answer_contains: ["Mixtral", "mixture", "Mistral"]
+
+  - date: "2024-03"
+    question: "What is Claude 3 Opus?"
+    answer_contains: ["Claude 3", "Opus", "Anthropic"]
+
+  - date: "2024-04"
+    question: "What is Llama 3 from Meta?"
+    answer_contains: ["Llama 3", "Meta"]
+
+  - date: "2024-05"
+    question: "What is GPT-4o?"
+    answer_contains: ["GPT-4o", "omni", "OpenAI"]
+
+  - date: "2024-11"
+    question: "Who won the 2024 US presidential election?"
+    answer_contains: ["Trump", "2024"]
+
+  - date: "2025-01"
+    question: "What is DeepSeek R1?"
+    answer_contains: ["DeepSeek", "R1", "reasoning"]
+
+  - date: "2025-03"
+    question: "What is Claude 3.5 Sonnet?"
+    answer_contains: ["Claude 3.5", "Sonnet"]
+
+  - date: "2025-06"
+    question: "What is GPT-5?"
+    answer_contains: ["GPT-5"]
+
+  - date: "2025-09"
+    question: "What is Llama 4 from Meta?"
+    answer_contains: ["Llama 4", "Meta"]

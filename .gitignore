@@ -1,0 +1,38 @@
+# Internal design docs — not for public repo
+PROJECT.md
+
+# Reports — never commit scan results
+reports/
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+
+# Virtual environments
+.venv/
+venv/
+env/
+ENV/
+
+# Build & dist
+*.egg-info/
+dist/
+build/
+*.egg
+
+# Environment / secrets
+.env
+.env.*
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db

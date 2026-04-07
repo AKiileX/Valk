@@ -1,0 +1,254 @@
+# Valk — LLM API endpoint wordlist
+# Each entry: path, method, and what category it belongs to
+
+endpoints:
+  # ── OpenAI-compatible ──────────────────────────────────────────
+  - path: /v1/chat/completions
+    method: POST
+    category: chat
+    probe: true
+
+  - path: /v1/completions
+    method: POST
+    category: completions
+    probe: true
+
+  - path: /v1/models
+    method: GET
+    category: info
+
+  - path: /v1/embeddings
+    method: POST
+    category: embeddings
+
+  - path: /v1/moderations
+    method: POST
+    category: moderation
+
+  # ── Health / status ────────────────────────────────────────────
+  - path: /health
+    method: GET
+    category: health
+
+  - path: /healthz
+    method: GET
+    category: health
+
+  - path: /ready
+    method: GET
+    category: health
+
+  - path: /v1/health
+    method: GET
+    category: health
+
+  - path: /api/health
+    method: GET
+    category: health
+
+  - path: /status
+    method: GET
+    category: health
+
+  # ── Ollama ─────────────────────────────────────────────────────
+  - path: /api/chat
+    method: POST
+    category: chat
+    probe: true
+
+  - path: /api/generate
+    method: POST
+    category: completions
+    probe: true
+
+  - path: /api/tags
+    method: GET
+    category: info
+
+  - path: /api/show
+    method: POST
+    category: info
+
+  - path: /api/ps
+    method: GET
+    category: info
+
+  # ── LiteLLM / proxy ───────────────────────────────────────────
+  - path: /chat/completions
+    method: POST
+    category: chat
+    probe: true
+
+  - path: /completions
+    method: POST
+    category: completions
+    probe: true
+
+  - path: /models
+    method: GET
+    category: info
+
+  - path: /model/info
+    method: GET
+    category: info
+
+  - path: /key/info
+    method: GET
+    category: info
+
+  # ── vLLM ───────────────────────────────────────────────────────
+  - path: /v1/models
+    method: GET
+    category: info
+
+  - path: /version
+    method: GET
+    category: info
+
+  - path: /metrics
+    method: GET
+    category: info
+
+  # ── text-generation-webui ──────────────────────────────────────
+  - path: /api/v1/chat
+    method: POST
+    category: chat
+    probe: true
+
+  - path: /api/v1/generate
+    method: POST
+    category: completions
+
+  - path: /api/v1/model
+    method: GET
+    category: info
+
+  - path: /api/v1/token-count
+    method: POST
+    category: info
+
+  # ── LocalAI ────────────────────────────────────────────────────
+  - path: /v1/audio/transcriptions
+    method: POST
+    category: audio
+
+  - path: /v1/images/generations
+    method: POST
+    category: images
+
+  # ── Anthropic ──────────────────────────────────────────────────
+  - path: /v1/messages
+    method: POST
+    category: chat
+    probe: true
+
+  - path: /v1/complete
+    method: POST
+    category: completions
+
+  # ── FastChat ───────────────────────────────────────────────────
+  - path: /v1/chat/completions
+    method: POST
+    category: chat
+
+  - path: /api/v1/chat/completions
+    method: POST
+    category: chat
+    probe: true
+
+  - path: /worker_get_status
+    method: POST
+    category: info
+
+  # ── Common root paths ──────────────────────────────────────────
+  - path: /
+    method: GET
+    category: root
+
+  - path: /docs
+    method: GET
+    category: docs
+
+  - path: /openapi.json
+    method: GET
+    category: docs
+
+  - path: /redoc
+    method: GET
+    category: docs
+
+  # ── API Versioning (v2/v3 — check for undocumented versions) ──
+  - path: /v2/chat/completions
+    method: POST
+    category: chat
+    probe: true
+
+  - path: /v2/completions
+    method: POST
+    category: completions
+
+  - path: /v2/models
+    method: GET
+    category: info
+
+  - path: /v2/embeddings
+    method: POST
+    category: embeddings
+
+  - path: /v3/chat/completions
+    method: POST
+    category: chat
+    probe: true
+
+  - path: /v3/models
+    method: GET
+    category: info
+
+  # ── Internal / debug endpoints (often left exposed) ────────────
+  - path: /debug
+    method: GET
+    category: debug
+
+  - path: /internal/models
+    method: GET
+    category: internal
+
+  - path: /admin
+    method: GET
+    category: admin
+
+  - path: /api/config
+    method: GET
+    category: config
+
+  - path: /v1/config
+    method: GET
+    category: config
+
+  - path: /v1/internal/config
+    method: GET
+    category: internal
+
+  - path: /tokenize
+    method: POST
+    category: tokenizer
+
+  - path: /v1/tokenize
+    method: POST
+    category: tokenizer
+
+  - path: /detokenize
+    method: POST
+    category: tokenizer
+
+  - path: /v1/detokenize
+    method: POST
+    category: tokenizer
+
+# Minimal chat probe payload (used to confirm chat endpoints)
+chat_probe:
+  messages:
+    - role: user
+      content: "Hello"
+  temperature: 0.0
+  max_tokens: 16

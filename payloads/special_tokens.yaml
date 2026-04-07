@@ -1,0 +1,250 @@
+# Valk — Known special tokens per model family
+# Used by token-recon module to probe which tokens the target recognizes
+
+families:
+  chatml:
+    description: "ChatML format — used by GPT, Qwen, DeepSeek, OpenChat"
+    models: ["gpt", "qwen", "deepseek", "openchat", "yi"]
+    tokens:
+      role_control:
+        - "<|im_start|>"
+        - "<|im_end|>"
+      role_names:
+        - "system"
+        - "user"
+        - "assistant"
+        - "tool"
+      tool_control:
+        - "<tool_call>"
+        - "</tool_call>"
+        - "<tool_response>"
+        - "</tool_response>"
+        - "<tools>"
+        - "</tools>"
+      generation_control:
+        - "<|endoftext|>"
+        - "<|endofprompt|>"
+
+  qwen:
+    description: "Qwen / DeepSeek extended format (superset of ChatML)"
+    models: ["qwen", "deepseek"]
+    tokens:
+      role_control:
+        - "<|im_start|>"
+        - "<|im_end|>"
+      tool_control:
+        - "<tool_call>"
+        - "</tool_call>"
+        - "<tool_response>"
+        - "</tool_response>"
+        - "<tools>"
+        - "</tools>"
+      thinking_control:
+        - "<think>"
+        - "</think>"
+      generation_control:
+        - "<|endoftext|>"
+        - "<|endofprompt|>"
+      fim_control:
+        - "<|fim_prefix|>"
+        - "<|fim_middle|>"
+        - "<|fim_suffix|>"
+
+  llama:
+    description: "LLaMA 2 / Mistral v0.1-v0.2 instruction format (legacy)"
+    models: ["llama2", "mistral-v0.1", "mistral-v0.2", "vicuna", "codellama"]
+    tokens:
+      role_control:
+        - "[INST]"
+        - "[/INST]"
+        - "<<SYS>>"
+        - "<</SYS>>"
+      sequence_control:
+        - "<s>"
+        - "</s>"
+      generation_control:
+        - "<|endoftext|>"
+
+  llama3:
+    description: "LLaMA 3 / 3.1 / 4 / Mistral v0.3+ format"
+    models: ["llama3", "llama-3", "llama-4", "mistral-v0.3", "mistral-nemo", "mistral-large", "mistral-small"]
+    tokens:
+      role_control:
+        - "<|begin_of_text|>"
+        - "<|end_of_text|>"
+        - "<|start_header_id|>"
+        - "<|end_header_id|>"
+        - "<|eot_id|>"
+      role_names:
+        - "system"
+        - "user"
+        - "assistant"
+        - "ipython"
+      tool_control:
+        - "<|python_tag|>"
+
+  anthropic:
+    description: "Anthropic Claude format (legacy text + modern XML)"
+    models: ["claude", "anthropic"]
+    tokens:
+      legacy_turn_delimiters:
+        - "\n\nHuman:"
+        - "\n\nAssistant:"
+      xml_control:
+        - "<artifact>"
+        - "</artifact>"
+        - "<thinking>"
+        - "</thinking>"
+        - "<tool_use>"
+        - "</tool_use>"
+        - "<tool_result>"
+        - "</tool_result>"
+        - "<result>"
+        - "</result>"
+        - "<answer>"
+        - "</answer>"
+        - "<search_quality_reflection>"
+        - "</search_quality_reflection>"
+
+  gemini:
+    description: "Google Gemini / Gemma 2+ format"
+    models: ["gemini", "gemma2", "gemma-2"]
+    tokens:
+      role_control:
+        - "<start_of_turn>"
+        - "<end_of_turn>"
+      role_names:
+        - "user"
+        - "model"
+      tool_control:
+        - "<tool_call>"
+        - "</tool_call>"
+        - "<tool_response>"
+        - "</tool_response>"
+
+  phi:
+    description: "Microsoft Phi format"
+    models: ["phi"]
+    tokens:
+      role_control:
+        - "<|system|>"
+        - "<|user|>"
+        - "<|assistant|>"
+        - "<|end|>"
+      tool_control:
+        - "<|tool_call|>"
+
+  gemma:
+    description: "Google Gemma 1.x format (legacy — see gemini for 2+)"
+    models: ["gemma"]
+    tokens:
+      role_control:
+        - "<start_of_turn>"
+        - "<end_of_turn>"
+      role_names:
+        - "user"
+        - "model"
+
+  command_r:
+    description: "Cohere Command R format"
+    models: ["command-r", "cohere"]
+    tokens:
+      role_control:
+        - "<|START_OF_TURN_TOKEN|>"
+        - "<|END_OF_TURN_TOKEN|>"
+        - "<|SYSTEM_TOKEN|>"
+        - "<|USER_TOKEN|>"
+        - "<|CHATBOT_TOKEN|>"
+      tool_control:
+        - "<|TOOL_CALL_TOKEN|>"
+        - "<|TOOL_RESULT_TOKEN|>"
+
+  generic:
+    description: "Generic/fallback tokens to probe"
+    models: []
+    tokens:
+      role_control:
+        - "<|system|>"
+        - "<|user|>"
+        - "<|assistant|>"
+        - "<|end|>"
+        - "<|tool|>"
+        - "<|function|>"
+      sequence_control:
+        - "<s>"
+        - "</s>"
+        - "<unk>"
+      bert_style:
+        - "[CLS]"
+        - "[SEP]"
+        - "[MASK]"
+      generation_control:
+        - "<|endoftext|>"
+
+# All unique tokens to probe (flattened, deduplicated) — used for brute-force recon
+all_probe_tokens:
+  # ChatML / Qwen / DeepSeek
+  - "<|im_start|>"
+  - "<|im_end|>"
+  - "<|endoftext|>"
+  - "<|endofprompt|>"
+  # Generic role tokens
+  - "<|system|>"
+  - "<|user|>"
+  - "<|assistant|>"
+  - "<|end|>"
+  - "<|tool|>"
+  - "<|function|>"
+  # Tool/function call tokens
+  - "<|tool_call|>"
+  - "<|function_call|>"
+  - "<tool_call>"
+  - "</tool_call>"
+  - "<tool_response>"
+  - "</tool_response>"
+  - "<tools>"
+  - "</tools>"
+  # LLaMA 2 / Mistral legacy
+  - "[INST]"
+  - "[/INST]"
+  - "<<SYS>>"
+  - "<</SYS>>"
+  - "<s>"
+  - "</s>"
+  # LLaMA 3 / 4 / Mistral v0.3+
+  - "<|begin_of_text|>"
+  - "<|end_of_text|>"
+  - "<|start_header_id|>"
+  - "<|end_header_id|>"
+  - "<|eot_id|>"
+  - "<|python_tag|>"
+  # Anthropic / Claude
+  - "\n\nHuman:"
+  - "\n\nAssistant:"
+  - "<tool_use>"
+  - "</tool_use>"
+  - "<tool_result>"
+  - "</tool_result>"
+  - "<artifact>"
+  - "</artifact>"
+  - "<thinking>"
+  - "</thinking>"
+  - "<result>"
+  - "</result>"
+  - "<answer>"
+  - "</answer>"
+  # Gemma / Gemini
+  - "<start_of_turn>"
+  - "<end_of_turn>"
+  # Cohere Command R
+  - "<|START_OF_TURN_TOKEN|>"
+  - "<|END_OF_TURN_TOKEN|>"
+  - "<|SYSTEM_TOKEN|>"
+  - "<|CHATBOT_TOKEN|>"
+  # FIM (code models)
+  - "<|fim_prefix|>"
+  - "<|fim_middle|>"
+  - "<|fim_suffix|>"
+  # Thinking/reasoning
+  - "<think>"
+  - "</think>"
