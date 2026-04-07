@@ -48,6 +48,18 @@ python valk.py scan http://localhost:11434 --dry-run
 # Scan with API key (or set VALK_API_KEY env var)
 python valk.py scan https://api.example.com --api-key sk-xxx
 
+# OpenAI API (provider auto-detected from URL)
+python valk.py scan https://api.openai.com --api-key sk-... --phase attack
+
+# Anthropic Claude API (provider auto-detected)
+python valk.py scan https://api.anthropic.com --api-key sk-ant-... --phase attack
+
+# Google Gemini API (provider auto-detected)
+python valk.py scan https://generativelanguage.googleapis.com --api-key AIza... --phase attack
+
+# Explicit provider override
+python valk.py scan https://api.example.com --provider anthropic --api-key sk-ant-...
+
 # Only STI modules
 python valk.py scan http://localhost:11434 -m "sti-*"
 
@@ -133,6 +145,7 @@ Options:
       --payload-pack External payload pack directory
       --regression   Deterministic probes + diff against previous baseline
       --dry-run      Show planned modules without executing
+      --provider     API provider: openai (default), anthropic, gemini (auto-detected from URL)
   -v, --verbose      Show full prompts and responses
 ```
 
@@ -183,8 +196,36 @@ A pack is a directory of YAML files using the same schema as `payloads/`. Add an
 |--------|-------|
 | Self-hosted (vLLM, Ollama, llama.cpp, LocalAI) | Full pipeline including STI — most vulnerable |
 | OpenAI-compatible proxy (LiteLLM, FastChat) | All modules; STI depends on backend tokenizer |
-| Cloud APIs (OpenAI, Anthropic, Google) | Jailbreak, guardrail bypass, prompt extraction |
+| OpenAI API (`api.openai.com`) | Auto-detected; pass `--api-key sk-...` |
+| Anthropic Claude API (`api.anthropic.com`) | Auto-detected; uses `x-api-key` auth automatically |
+| Google Gemini API (`generativelanguage.googleapis.com`) | Auto-detected; uses `?key=` auth automatically |
 | LLM agents / chatbots | Context injection, function hijack (if tools exposed) |
+| Consumer web UIs (chatgpt.com, claude.ai, gemini.google.com) | Request template mode — see below |
+
+### Testing Web UI Chatbots (Request Template Mode)
+
+Consumer web UIs don't expose a public API. The recommended approach is **request template mode**: capture one real HTTP request from your browser and replay it with attack payloads injected — no reverse engineering required.
+
+**Step 1 — Capture a real request:**
+
+Open the chatbot in your browser, open DevTools (F12) → Network tab, send any message, right-click the chat request → **Copy as cURL**.
+
+Or capture via Burp Suite → right-click the request → **Copy as curl command**.
+
+**Step 2 — Pass it to Valk:**
+
+```bash
+python valk.py scan --curl "curl 'https://claude.ai/api/organizations/org-xxx/chat_conversations/uuid/completion' \
+  -H 'Cookie: sessionKey=sk-ant-...' \
+  -H 'Content-Type: application/json' \
+  --data '{\"prompt\": \"Hello\", \"model\": \"claude-opus-4-5\"}'"
+```
+
+Valk parses the captured request, identifies the message field, and replays the full request — with all your session cookies, CSRF tokens, organization IDs intact — substituting only the message content with attack payloads.
+
+**Why this works:** Your captured request is byte-for-byte identical to what your browser sends. The chatbot cannot distinguish it from a normal browser session. Every attack probe is authenticated with your real session automatically.
+
+> **Note:** `--curl` / request template mode is on the roadmap. The provider adapter layer (OpenAI, Anthropic, Gemini) is already implemented in v0.3.0.
 
 ---
 
