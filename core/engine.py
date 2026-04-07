@@ -239,6 +239,21 @@ class ScanEngine:
                 if phase == Phase.ATTACK:
                     self._set_payload_budget(session)
 
+                # Verify model is loaded before running attack probes
+                if phase == Phase.ATTACK:
+                    ready, reason = await self._check_model_ready(session)
+                    if not ready:
+                        self.log.error(
+                            f"model not ready — {reason} — "
+                            "load a model in LM Studio (or your inference server) and re-run",
+                            module="engine",
+                        )
+                        self.log.error(
+                            "aborting attack phase — results would be invalid",
+                            module="engine",
+                        )
+                        break
+
                 self.log.phase_start(phase)
                 await self._run_phase(phase, session)
                 self.log.phase_end(phase)
@@ -326,6 +341,31 @@ class ScanEngine:
 
                 self.log.error(error_msg, module=mod_name)
                 self.ctx.errors.append(error_msg)
+
+    async def _check_model_ready(self, session: Session) -> tuple[bool, str]:
+        """Send a minimal ping to verify a model is loaded and generating responses.
+
+        Returns (ready, reason_string).
+        """
+        endpoint = self.ctx.chat_endpoint or "/v1/chat/completions"
+        try:
+            resp = await session.single_prompt("ping", endpoint=endpoint, max_tokens=8)
+        except Exception as exc:
+            return False, str(exc)
+
+        if resp.status_code != 200:
+            # Surface the server-side error message if present
+            raw_lower = resp.raw.lower()
+            if "no models loaded" in raw_lower or "no model" in raw_lower:
+                return False, "no model loaded on inference server"
+            return False, f"HTTP {resp.status_code}"
+
+        # A 200 with an empty content field and a server-side error in the body
+        raw_lower = resp.raw.lower()
+        if "no models loaded" in raw_lower or "no model" in raw_lower:
+            return False, "no model loaded on inference server"
+
+        return True, "ok"
 
     @staticmethod
     def _matches_filter(name: str, filters: list[str]) -> bool:
