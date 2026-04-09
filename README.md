@@ -237,6 +237,18 @@ TLS verification is disabled by default (`verify=False`) because pentest targets
 
 ---
 
+## Legal Disclaimer
+
+Valk is provided for authorized security testing and research purposes only. By using this tool, you confirm that you have explicit written permission from the owner of any system you test against.
+
+Unauthorized use against systems you do not own or have explicit permission to test may violate the Computer Fraud and Abuse Act (CFAA), the Computer Misuse Act (CMA), GDPR, and equivalent laws in your jurisdiction. You are solely responsible for ensuring your use of this tool complies with all applicable local, state, national, and international laws and regulations.
+
+The authors provide this software "as is" without warranty of any kind, express or implied. The authors accept no liability for any damage, data loss, service disruption, legal consequences, or misuse arising from the use or misuse of this tool.
+
+This tool is not intended for use against production systems without proper authorization, safeguards, and change management processes in place.
+
+---
+
 ## License
 
 Apache 2.0 — see [LICENSE](LICENSE).
